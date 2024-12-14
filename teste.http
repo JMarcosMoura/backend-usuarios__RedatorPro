@@ -1,0 +1,20 @@
+### Create user
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+  "name": "João",
+  "email": "joao@gmail.com",
+  "password": "123456",
+  "description": "Aluno focado em vestibular",
+  "specialty": "vestibular"
+}
+
+### Get all users
+GET http://localhost:3000/users
+
+### Filter users
+GET http://localhost:3000/users/filter?specialty=vestibular
+
+### Delete user
+DELETE http://localhost:3000/users/1

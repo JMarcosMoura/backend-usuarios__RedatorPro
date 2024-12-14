@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  password     String
+  description  String?
+  reviews      Int      @default(0)
+  likes        Int      @default(0)
+  stars        Float    @default(0.0)
+  profilePhoto String?  // Nome do arquivo da foto de perfil
+  specialty    String   // "enem" ou "vestibular"
+}

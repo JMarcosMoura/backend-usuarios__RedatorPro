@@ -1,15 +1,17 @@
 -- CreateTable
 CREATE TABLE "User" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "description" TEXT,
     "reviews" INTEGER NOT NULL DEFAULT 0,
     "likes" INTEGER NOT NULL DEFAULT 0,
-    "stars" REAL NOT NULL DEFAULT 0.0,
+    "stars" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
     "profilePhoto" TEXT,
-    "specialty" TEXT NOT NULL
+    "specialty" TEXT NOT NULL,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex

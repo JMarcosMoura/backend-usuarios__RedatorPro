@@ -162,11 +162,11 @@ router.put('/bulk', async (req, res) => {
       const dataToUpdate = {};
 
       // Só adiciona os campos que são enviados na requisição
-      if (name) dataToUpdate.name = name;
-      if (email) dataToUpdate.email = email;
-      if (password) dataToUpdate.password = password;
-      if (description) dataToUpdate.description = description;
-      if (specialty) dataToUpdate.specialty = specialty;
+      if (name !== undefined) dataToUpdate.name = name;
+      if (email !== undefined) dataToUpdate.email = email;
+      if (password !== undefined) dataToUpdate.password = password;
+      if (description !== undefined) dataToUpdate.description = description;
+      if (specialty !== undefined) dataToUpdate.specialty = specialty;
       if (likes !== undefined) dataToUpdate.likes = likes;
       if (reviews !== undefined) dataToUpdate.reviews = reviews;
       if (stars !== undefined) dataToUpdate.stars = stars;

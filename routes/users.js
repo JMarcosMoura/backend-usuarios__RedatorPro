@@ -140,56 +140,6 @@ router.put('/:id', upload.single('profilePhoto'), async (req, res) => {
 
 
 
-// Rota PUT para atualizar parcialmente múltiplos usuários (Bulk)
-router.put('/bulk', async (req, res) => {
-  const usersToUpdate = req.body; // Espera um array de usuários
-
-  if (!Array.isArray(usersToUpdate)) {
-    return res.status(400).json({ error: 'A entrada deve ser um array de usuários' });
-  }
-
-  try {
-    const updatedUsers = [];
-
-    for (const user of usersToUpdate) {
-      const { id, name, email, password, description, specialty, likes, reviews, stars } = user;
-
-      // Garantir que o ID é passado, mas outros campos são opcionais
-      if (!id) {
-        return res.status(400).json({ error: 'Faltando campo obrigatório: id' });
-      }
-
-      const dataToUpdate = {};
-
-      // Só adiciona os campos que são enviados na requisição
-      if (name !== undefined) dataToUpdate.name = name;
-      if (email !== undefined) dataToUpdate.email = email;
-      if (password !== undefined) dataToUpdate.password = password;
-      if (description !== undefined) dataToUpdate.description = description;
-      if (specialty !== undefined) dataToUpdate.specialty = specialty;
-      if (likes !== undefined) dataToUpdate.likes = likes;
-      if (reviews !== undefined) dataToUpdate.reviews = reviews;
-      if (stars !== undefined) dataToUpdate.stars = stars;
-
-      // Atualiza apenas os campos fornecidos
-      const updatedUser = await prisma.user.update({
-        where: { id: parseInt(id) },
-        data: dataToUpdate, // Somente os campos que precisam ser atualizados
-      });
-
-      updatedUsers.push(updatedUser);
-    }
-
-    res.json(updatedUsers);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-
-
-
-
-
 // Rota para excluir um usuário por ID
 router.delete('/:id', async (req, res) => {
   const { id } = req.params; // Obtém o ID da URL

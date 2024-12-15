@@ -140,38 +140,52 @@ router.put('/:id', upload.single('profilePhoto'), async (req, res) => {
 
 
 
-// Rota para atualizar múltiplos usuários
+// Rota PUT para atualizar parcialmente múltiplos usuários (Bulk)
 router.put('/bulk', async (req, res) => {
-  const users = req.body;
+  const usersToUpdate = req.body; // Espera um array de usuários
 
-  if (!Array.isArray(users) || users.length === 0) {
-    return res.status(400).json({ error: 'É necessário enviar um array de usuários' });
+  if (!Array.isArray(usersToUpdate)) {
+    return res.status(400).json({ error: 'A entrada deve ser um array de usuários' });
   }
 
   try {
-    const updatedUsers = await Promise.all(users.map(async user => {
+    const updatedUsers = [];
+
+    for (const user of usersToUpdate) {
       const { id, name, email, password, description, specialty, likes, reviews, stars } = user;
 
-      return prisma.user.update({
+      // Garantir que o ID é passado, mas outros campos são opcionais
+      if (!id) {
+        return res.status(400).json({ error: 'Faltando campo obrigatório: id' });
+      }
+
+      const dataToUpdate = {};
+
+      // Só adiciona os campos que são enviados na requisição
+      if (name) dataToUpdate.name = name;
+      if (email) dataToUpdate.email = email;
+      if (password) dataToUpdate.password = password;
+      if (description) dataToUpdate.description = description;
+      if (specialty) dataToUpdate.specialty = specialty;
+      if (likes !== undefined) dataToUpdate.likes = likes;
+      if (reviews !== undefined) dataToUpdate.reviews = reviews;
+      if (stars !== undefined) dataToUpdate.stars = stars;
+
+      // Atualiza apenas os campos fornecidos
+      const updatedUser = await prisma.user.update({
         where: { id: parseInt(id) },
-        data: {
-          name,
-          email,
-          password,
-          description,
-          specialty,
-          likes: parseInt(likes) || 0,
-          reviews: parseInt(reviews) || 0,
-          stars: parseFloat(stars) || 0.0,
-        },
+        data: dataToUpdate, // Somente os campos que precisam ser atualizados
       });
-    }));
+
+      updatedUsers.push(updatedUser);
+    }
 
     res.json(updatedUsers);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ error: error.message });
   }
 });
+
 
 
 

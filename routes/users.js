@@ -56,10 +56,10 @@ const upload = multer({
   fileFilter,
 });
 
-// Rota para criar um usuário com foto de perfil
+// Rota para criar um usuário com foto de perfil e outros campos
 router.post('/', upload.single('profilePhoto'), async (req, res) => {
-  const { name, email, password, description, specialty } = req.body;
-  const profilePhoto = req.file ? req.file.filename : null; // Verifica se a imagem foi enviada
+  const { name, email, password, description, specialty, likes, reviews, stars } = req.body;
+  const profilePhoto = req.file ? req.file.filename : null;
 
   try {
     const user = await prisma.user.create({
@@ -69,7 +69,10 @@ router.post('/', upload.single('profilePhoto'), async (req, res) => {
         password,
         description,
         specialty,
-        profilePhoto, // Armazena o nome do arquivo da foto
+        profilePhoto,
+        likes: parseInt(likes) || 0,      // Garante que seja um número
+        reviews: parseInt(reviews) || 0,  // Garante que seja um número
+        stars: parseFloat(stars) || 0.0,  // Aceita números decimais
       },
     });
     res.status(201).json(user);
@@ -78,44 +81,99 @@ router.post('/', upload.single('profilePhoto'), async (req, res) => {
   }
 });
 
-// Rota para atualizar todos os dados de um usuário (exceto o id)
-router.put('/:id', async (req, res) => {
-  const { id } = req.params; // Obtém o ID da URL
-  const { name, email, password, description, specialty, profilePhoto } = req.body; // Obtém os dados do corpo da requisição
 
-  // Verifica se o ID é um número válido
-  if (isNaN(id)) {
-    return res.status(400).json({ error: 'ID inválido' });
-  }
 
-  // Verifica se pelo menos um campo foi enviado para atualização
-  if (!name && !email && !password && !description && !specialty && !profilePhoto) {
-    return res.status(400).json({ error: 'Pelo menos um campo deve ser enviado para atualização' });
+// Rota para criar múltiplos usuários
+router.post('/bulk', async (req, res) => {
+  const users = req.body; // Espera-se um array de usuários no corpo da requisição
+
+  if (!Array.isArray(users) || users.length === 0) {
+    return res.status(400).json({ error: 'É necessário enviar um array de usuários' });
   }
 
   try {
-    // Atualiza os dados do usuário no banco de dados
-    const user = await prisma.user.update({
-      where: { id: parseInt(id) }, // Encontra o usuário pelo ID
-      data: { // Atualiza os campos
+    const formattedUsers = users.map(user => ({
+      ...user,
+      likes: parseInt(user.likes) || 0,
+      reviews: parseInt(user.reviews) || 0,
+      stars: parseFloat(user.stars) || 0.0,
+    }));
+
+    const createdUsers = await prisma.user.createMany({
+      data: formattedUsers,
+    });
+
+    res.status(201).json({ message: `${createdUsers.count} usuários criados` });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+
+// Rota para atualizar um único usuário
+router.put('/:id', upload.single('profilePhoto'), async (req, res) => {
+  const { id } = req.params;
+  const { name, email, password, description, specialty, likes, reviews, stars } = req.body;
+  const profilePhoto = req.file ? req.file.filename : null;
+
+  try {
+    const updatedUser = await prisma.user.update({
+      where: { id: parseInt(id) },
+      data: {
         name,
         email,
         password,
         description,
         specialty,
         profilePhoto,
+        likes: parseInt(likes) || 0,
+        reviews: parseInt(reviews) || 0,
+        stars: parseFloat(stars) || 0.0,
       },
     });
-
-    res.json(user); // Retorna o usuário atualizado
+    res.json(updatedUser);
   } catch (error) {
-    if (error.code === 'P2025') {
-      // Caso o usuário não exista
-      return res.status(404).json({ error: 'Usuário não encontrado' });
-    }
+    res.status(400).json({ error: error.message });
+  }
+});
+
+
+
+// Rota para atualizar múltiplos usuários
+router.put('/bulk', async (req, res) => {
+  const users = req.body;
+
+  if (!Array.isArray(users) || users.length === 0) {
+    return res.status(400).json({ error: 'É necessário enviar um array de usuários' });
+  }
+
+  try {
+    const updatedUsers = await Promise.all(users.map(async user => {
+      const { id, name, email, password, description, specialty, likes, reviews, stars } = user;
+
+      return prisma.user.update({
+        where: { id: parseInt(id) },
+        data: {
+          name,
+          email,
+          password,
+          description,
+          specialty,
+          likes: parseInt(likes) || 0,
+          reviews: parseInt(reviews) || 0,
+          stars: parseFloat(stars) || 0.0,
+        },
+      });
+    }));
+
+    res.json(updatedUsers);
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
+
 
 
 // Rota para excluir um usuário por ID

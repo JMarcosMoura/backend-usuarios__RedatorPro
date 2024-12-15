@@ -121,15 +121,15 @@ router.put('/:id', upload.single('profilePhoto'), async (req, res) => {
     const updatedUser = await prisma.user.update({
       where: { id: parseInt(id) },
       data: {
-        name,
-        email,
-        password,
-        description,
-        specialty,
-        profilePhoto,
-        likes: parseInt(likes) || 0,
-        reviews: parseInt(reviews) || 0,
-        stars: parseFloat(stars) || 0.0,
+        name: name || undefined,  // Se não houver nome, não atualiza
+        email: email || undefined,
+        password: password || undefined,
+        description: description || undefined,
+        specialty: specialty || undefined,
+        profilePhoto: profilePhoto || undefined,
+        likes: likes ? parseInt(likes) : undefined,  // Não altera se não passar likes
+        reviews: reviews ? parseInt(reviews) : undefined,
+        stars: stars ? parseFloat(stars) : undefined,
       },
     });
     res.json(updatedUser);
